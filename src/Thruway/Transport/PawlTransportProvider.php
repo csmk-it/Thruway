@@ -9,6 +9,7 @@ use Ratchet\Client\WebSocket;
 use React\EventLoop\LoopInterface;
 use Thruway\Peer\ClientInterface;
 use Thruway\Serializer\JsonSerializer;
+use React\Dns\Resolver\Resolver;
 
 /**
  * Class WebsocketClient
@@ -28,14 +29,20 @@ class PawlTransportProvider extends AbstractClientTransportProvider
      */
     private $connector;
 
+	/**
+	 * @var Resolver
+	 */
+	private $resolver;
+
     /**
      * Constructor
      *
      * @param string $URL
      */
-    function __construct($URL = "ws://127.0.0.1:8080/")
+    function __construct($URL = "ws://127.0.0.1:8080/", Resolver $resolver = null)
     {
         $this->URL     = $URL;
+        $this->resolver = $resolver;
     }
 
     /**
@@ -50,7 +57,7 @@ class PawlTransportProvider extends AbstractClientTransportProvider
 
         $this->client    = $client;
         $this->loop      = $loop;
-        $this->connector = new Factory($this->loop);
+        $this->connector = new Factory($this->loop, $this->resolver);
 
         $this->connector->__invoke($this->URL, ['wamp.2.json'])->then(
             function (WebSocket $conn) {
